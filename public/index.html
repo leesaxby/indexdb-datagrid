@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+    <head>
+        <title>index</title>
+    </head>
+    <script src="lib/pouchdb-5.1.0.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="lib/react.js"></script>
+    <script src="lib/react-dom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
+    <script type="text/javascript" src="js/db.js"></script>
+    <script type="text/javascript" src="js/app-react.js"></script>
+    <body>
+      <!--button id="bulk-add">Bulk add</button-->
+      <!--button id="get-doc">get doc</button-->
+      <!--button id="delete-db">delete db</button-->
+      <!--button id="create-db">create db</button-->
+      <!--button id="count">count</button-->
+
+      <table id="my-table">
+        <tbody id="my-table-body">
+
+        </tbody>
+      </table>
+      <script type="text/babel">
+
+        var HelloWorld = React.createClass({
+          render: function() {
+            console.log(this.props.myArr)
+            return (
+              <tr>
+                <td>/*{this.props.myArr}*/</td>
+              </tr>
+            );
+          }
+        });
+
+
+
+        setInterval(function() {
+          ReactDOM.render( <HelloWorld myArr={createFragment({test: 'tester'})}/>, document.getElementById('my-table-body') );
+        }, 500);
+      </script>
+    </body>
+</html>

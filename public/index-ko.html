@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+    <head>
+        <title>index</title>
+    </head>
+    <body>
+      <button id="bulk-add">Bulk add</button>
+      <!--button id="get-doc">get doc</button-->
+      <!--button id="delete-db">delete db</button-->
+      <!--button id="create-db">create db</button-->
+      <button id="count">count</button>
+
+      <div>
+
+        <button data-bind="click: getDoc">get doc</button>
+        <button data-bind="click: find">find</button>
+        <button data-bind="click: previousRecs">previous</button>
+        <button data-bind="click: nextRecs">next</button>
+        <button data-bind="click: mockChange">mock change</button>
+
+
+
+
+        <table>
+          <thead>
+            <tr>
+              <td>id</td>
+              <td>rev</td>
+              <td>guid</td>
+              <td>name</td>
+              <td>index</td>
+              <td>age</td>
+              <td>active</td>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: records">
+            <tr>
+              <td> <span data-bind="text: $data._id"></span> </td>
+              <td> <span data-bind="text: $data._rev"></span> </td>
+              <td> <span data-bind="text: $data.guid"></span> </td>
+              <td> <span data-bind="text: $data.index"></span> </td>
+              <td> <input data-bind="value: $data.name"> </td>
+              <td> <input data-bind="value: $data.age"> </td>
+              <td> <input data-bind="value: $data.isActive"> </td>
+              <td> <button data-bind="click: $root.updateDoc">update doc</button> </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+
+
+      <script src="lib/pouchdb-5.1.0.min.js"></script>
+      <script src="lib/pouchdb.find.min.js"></script>
+      <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="lib/knockout.js"></script>
+      <script type="text/javascript" src="js/db.js"></script>
+      <script type="text/javascript" src="js/app-ko.js"></script>
+    </body>
+</html>
