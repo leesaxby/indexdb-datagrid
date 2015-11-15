@@ -16,7 +16,7 @@
         <button data-bind="click: find">find</button>
         <button data-bind="click: previousRecs">previous</button>
         <button data-bind="click: nextRecs">next</button>
-        <button data-bind="click: mockChange">mock change</button>
+
 
 
 
@@ -36,8 +36,8 @@
           <tbody data-bind="foreach: records">
             <tr>
               <td> <span data-bind="text: $data._id"></span> </td>
-              <td> <span data-bind="text: $data._rev"></span> </td>
-              <td> <span data-bind="text: $data.guid"></span> </td>
+              <td> <span data-bind="text: $data._rev, visible: false"></span> </td>
+              <td> <span data-bind="text: $data.guid, visible: false"></span> </td>
               <td> <span data-bind="text: $data.index"></span> </td>
               <td> <input data-bind="value: $data.name"> </td>
               <td> <input data-bind="value: $data.age"> </td>

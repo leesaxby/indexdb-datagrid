@@ -1,12 +1,5 @@
 var app = app || {}
 
-app.socket = io();
-
-app.socket.on('updatedDoc', function(  ) {
-    console.log('updated doc')
-})
-
-
 app.ViewModel = function() {
   var self = this;
 
@@ -22,22 +15,33 @@ app.ViewModel = function() {
       });
   };
 
-  self.updateDoc = function( doc ) {
-    app.db.get(doc._id).then(function(origDoc) {
-      doc._rev = origDoc._rev;
-      self.records.remove( doc )
-      self.records.push( doc );
-      console.log(doc)
-      return app.db.put(doc);
-    }).catch(function(err) {
-      if (err.status === 409) {
-        return retryUntilWritten(doc);
-      } else { // new doc
-        self.records.push( doc );
-        return app.db.put(doc);
-      }
-    });
+  self.syncDoc = function( doc ) {
+    self.removeDoc( doc._id );
+        app.db.get(doc._id).then(function(origDoc) {
+          doc._rev = origDoc._rev;
+          self.records.push( doc );
+          return app.db.put(doc);
+        }).catch(function(err) {
+          if (err.status === 409) {
+            return self.syncDoc(doc);
+          } else { // new doc
+            self.records.push( doc );
+            return app.db.put(doc);
+          }
+        });
+  }
 
+  self.updateDoc = function( doc ) {
+    app.socket.emit( 'docUpdate', doc );
+  };
+
+  self.removeDoc = function( docId ) {
+    for ( var i=0, len = self.records().length - 1; i < len; i++ ) {
+      if ( self.records()[i]._id === docId ) {
+        self.records.remove( self.records()[i] );
+        break;
+      }
+    }
   };
 
   self.find = function() {
@@ -86,11 +90,13 @@ app.ViewModel = function() {
     });
   };
 
-  self.mockChange = function() {
-    app.socket.emit( 'makeChange' );
-  }
-
 };
 
+app.viewModel = new app.ViewModel();
 
-ko.applyBindings( new app.ViewModel() )
+app.socket = io();
+app.socket.on('updatedDoc', function( doc ) {
+    app.viewModel.syncDoc( doc );
+})
+
+ko.applyBindings( app.viewModel );

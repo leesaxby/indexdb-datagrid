@@ -9,9 +9,8 @@ io.on('connection', function( socket ) {
     socket.on('disconnect', function() {
         console.log("user disconnected");
         connectCount--;
-    }).on('makeChange', function( todoArr ) {
-        todoList = todoArr;
-        io.emit( 'updatedDoc', {} );
+    }).on('docUpdate', function( doc ) {
+        io.emit( 'updatedDoc', doc );
     })
 
 })
