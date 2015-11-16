@@ -3,6 +3,16 @@ var app = app || {}
 app.ViewModel = function() {
   var self = this;
 
+  self.status = ko.observable(null);
+  self.status.subscribe(function( val ) {
+    if( val ) {
+      $('#msgModal').modal('show');  
+    } else {
+      $('#msgModal').modal('hide'); 
+    }
+    
+  })
+  
   self.bulkUploadTime = ko.observable(0);
   self.bulkUploadCount  = ko.observable(0);
   self.indexTime = ko.observable(0);
@@ -12,8 +22,8 @@ app.ViewModel = function() {
   self.maxTblRows = 30;
   self.indexMin = 0;
   self.indexMax = 0;
-  self.records = ko.observableArray();
-
+  self.records = ko.observableArray([]);
+  
   self.getDocs = function( min, max ) {
     min = min || 0;
     max = max || self.maxTblRows;
@@ -35,7 +45,12 @@ app.ViewModel = function() {
       self.indexMin = docs[0].index;
       self.indexMax = docs[docsLen - 1].index;
       self.records(docs);
+      self.status(null);
     }).catch(function (err) {
+      self.status('Problem Getting Records...')
+      setTimeout(function() {
+        self.status(null)
+      }, 3000)
       console.log(err)
     });
   }
@@ -70,6 +85,7 @@ app.ViewModel = function() {
   };
 
   self.initDocs = function() {
+    self.status('Getting Records...');
     self.getDocs();
   };
 
@@ -94,18 +110,18 @@ app.ViewModel = function() {
       if ( response.rows.length < 10000 ) {
         var data1 = $.ajax( "olddata/data1.json" ),
             data2 = $.ajax( "olddata/data2.json" );
-
+        self.status('Getting JSON...')
         $.when( data1, data2 ).then( function( resp1, resp2 ) {
             var allDocs = resp1[0].concat(resp2[0]),
                 startTime = +new Date();
-
+            self.status('Adding Records...')
             app.db.bulkDocs( allDocs ).then(function( response ) {
               var endTime = +new Date();
               self.bulkUploadTime( (endTime - startTime) / 1000 );
               self.bulkUploadCount( response.length )
-              console.log('all docs inserted');
-
+              
               var indexStartTime = +new Date();
+              self.status('Creating Secondary Index...')
               app.db.createIndex({
                 index: {
                   fields: ['index']
@@ -113,8 +129,8 @@ app.ViewModel = function() {
               }).then(function (result) {
                 var endTime = +new Date();
                 self.indexTime( (endTime - indexStartTime) / 1000 );
-                console.log('index created')
-
+                self.status(null);
+                self.initDocs();
               }).catch(function (err) {
                 console.log(err)
                 // ouch, an error
@@ -135,8 +151,9 @@ app.ViewModel = function() {
   };
 
   self.deleteDb = function() {
+    self.status('Deleting Database...')
     app.db.destroy().then(function() {
-      console.log("db deleted")
+      self.status(null);
     }).catch(function(err) {
       console.log(err)
     })
@@ -154,3 +171,5 @@ app.socket.on('updatedDoc', function( doc ) {
 })
 
 ko.applyBindings( app.viewModel );
+
+app.viewModel.initDocs();
