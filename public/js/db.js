@@ -18,22 +18,12 @@ app.db.createIndex({
 */
 
 
-$('#delete-db').on('click', function() {
-  app.db.destroy().then(function() {
-    console.log("db deleted")
-  }).catch(function(err) {
-    console.log(err)
-  })
-})
+
 
 //
 
 $('#count').on('click', function() {
-  app.db.allDocs().then(function(response){
-      console.log(response.rows.length)
-  }).catch(function(err){
-      console.log(err)
-  })
+
 })
 
 /*
@@ -82,22 +72,7 @@ db.get('mydoc').then(function(doc) {
     console.log(err)
 })
 */
-$('#bulk-add').on('click', function() {
-  $.ajax({
-    url: 'olddata/data2.json',
-    success: function(response) {
-          app.db.bulkDocs(response).then(function(response) {
-            console.log("done");
 
-          }).catch(function(err){
-              console.log(err)
-          })
-    },
-    error: function(err) {
-      console.log(err)
-    }
-  })
-})
 
 
 

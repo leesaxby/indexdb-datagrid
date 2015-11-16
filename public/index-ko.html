@@ -4,31 +4,46 @@
         <title>index</title>
     </head>
     <body>
-      <button id="bulk-add">Bulk add</button>
-      <!--button id="get-doc">get doc</button-->
-      <!--button id="delete-db">delete db</button-->
+
       <!--button id="create-db">create db</button-->
       <button id="count">count</button>
 
       <div>
 
-        <button data-bind="click: getDoc">get doc</button>
-        <button data-bind="click: find">find</button>
+        <button data-bind="click: addAllDocs">add all docs</button>
+        <button data-bind="click: countDocs">count docs</button>
+        <button data-bind="click: deleteDb">delete DB</button>
+        <button data-bind="click: initDocs">init Docs</button>
         <button data-bind="click: previousRecs">previous</button>
         <button data-bind="click: nextRecs">next</button>
 
 
-
+        <table>
+          <thead>
+            <th>BULK UPLOAD</th>
+            <th>QUERY DB</th>
+            <th>INDEX</th>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-bind="text: 'time: ' + bulkUploadTime()"></td>
+              <td data-bind="text: 'time: ' + queryTime()"></td>
+              <td data-bind="text: 'time: ' + indexTime()"></td>
+            </tr>
+            <tr>
+              <td data-bind="text: 'recs: ' + bulkUploadCount()"></td>
+              <td data-bind="text: 'recs: ' + queryCount()"></td>
+            </tr>
+          </tbody>
+        </table>
 
 
         <table>
           <thead>
             <tr>
               <td>id</td>
-              <td>rev</td>
-              <td>guid</td>
-              <td>name</td>
               <td>index</td>
+              <td>name</td>
               <td>age</td>
               <td>active</td>
             </tr>
@@ -36,8 +51,6 @@
           <tbody data-bind="foreach: records">
             <tr>
               <td> <span data-bind="text: $data._id"></span> </td>
-              <td> <span data-bind="text: $data._rev, visible: false"></span> </td>
-              <td> <span data-bind="text: $data.guid, visible: false"></span> </td>
               <td> <span data-bind="text: $data.index"></span> </td>
               <td> <input data-bind="value: $data.name"> </td>
               <td> <input data-bind="value: $data.age"> </td>
