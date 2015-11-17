@@ -12,6 +12,7 @@
           <button class="btn btn-primary" data-bind="click: addAllDocs">BULK ADD</button>
           <button class="btn btn-primary" data-bind="click: countDocs">COUNT</button>
           <button class="btn btn-primary" data-bind="click: deleteDb">DELETE DB</button>
+          <span>* = editable</span>
         </div>
       
         <div id="stats-container">
@@ -38,7 +39,7 @@
       
 
       
-      <div data-bind="visible: records().length" id="grid-container" class="container">
+      <div data-bind="visible: records().length" id="grid-container" class="container-fluid">
         <table>
           <thead>
             <tr>
@@ -60,14 +61,14 @@
               <td> <input data-bind="value: $data.name"> </td>
               <td> <input data-bind="value: $data.age"> </td>
               <td> <input data-bind="value: $data.isActive"> </td>
-              <td> <button data-bind="click: $root.updateDoc">update doc</button> </td>
+              <td> <a data-bind="click: $root.updateDoc">UPDATE</a> </td>
               <td></td>
             </tr>
           </tbody>
         </table>
       </div>
       
-      <div id="msgModal" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
+      <div id="msgModal" class="modal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
     		<div class="modal-dialog modal-m">
       		<div class="modal-content">
       			<div class="modal-header">
@@ -87,7 +88,6 @@
       <script src="/socket.io/socket.io.js"></script>
       <script src="lib/knockout.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
-      <script type="text/javascript" src="js/db.js"></script>
       <script type="text/javascript" src="js/app-ko.js"></script>
     </body>
 </html>

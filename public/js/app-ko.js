@@ -56,10 +56,10 @@ app.ViewModel = function() {
   }
 
   self.syncDoc = function( doc ) {
-    self.removeDoc( doc._id );
+    var oldDoc = doc;
         app.db.get(doc._id).then(function(origDoc) {
           doc._rev = origDoc._rev;
-          self.records.push( doc );
+          self.replaceDoc( oldDoc._id, doc );
           return app.db.put(doc);
         }).catch(function(err) {
           if (err.status === 409) {
@@ -75,10 +75,10 @@ app.ViewModel = function() {
     app.socket.emit( 'docUpdate', doc );
   };
 
-  self.removeDoc = function( docId ) {
+  self.replaceDoc = function( oldDocId, newDoc ) {
     for ( var i=0, len = self.records().length - 1; i < len; i++ ) {
-      if ( self.records()[i]._id === docId ) {
-        self.records.remove( self.records()[i] );
+      if ( self.records()[i]._id === oldDocId ) {
+        self.records.replace( self.records()[i], newDoc );
         break;
       }
     }
@@ -112,6 +112,7 @@ app.ViewModel = function() {
             data2 = $.ajax( "olddata/data2.json" );
         self.status('Getting JSON...')
         $.when( data1, data2 ).then( function( resp1, resp2 ) {
+            
             var allDocs = resp1[0].concat(resp2[0]),
                 startTime = +new Date();
             self.status('Adding Records...')
@@ -139,6 +140,8 @@ app.ViewModel = function() {
             }).catch(function(err){
               console.log(err)
             });
+            
+          
         }).fail( function( xhr, err, status ) {
           console.log(err + ': ' + status)
         });

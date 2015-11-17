@@ -1,7 +1,7 @@
 
 var app = app || {}
 
-app.db = new PouchDB('my-db');
+
 
 /*
 app.db.createIndex({
