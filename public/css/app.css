@@ -45,7 +45,6 @@
     border: 0px;
     background: #3498db;
     color: #fff;
-    font-weight: bold;;
 }
 
 .page-btn {
@@ -65,12 +64,36 @@
     outline: none;
 }
 
+#grid-container thead input {
+    border: 0px;
+    background: none;
+    outline: none;
+    color: #ffffff;
+    font-style: italic;
+}
+
+    input::-webkit-input-placeholder {
+    color: #ffffff !important;
+    }
+
+    input:-moz-placeholder { /* Firefox 18- */
+    color: #ffffff !important;
+    }
+
+    input::-moz-placeholder {  /* Firefox 19+ */
+    color: #ffffff !important;
+    }
+
+    input:-ms-input-placeholder {
+    color: #ffffff !important;
+    }
+
 #grid-container table a {
     visibility: hidden;
     background: none;
     color: white;
     padding: 0px;
-    border: 0px;   
+    border: 0px;
     font-weight: bold;
     text-decoration: none;
     cursor: pointer;
@@ -81,7 +104,7 @@
     color: #ffffff;
 }
 
-#grid-container tbody tr:hover a { 
+#grid-container tbody tr:hover a {
     visibility: visible;
 }
 

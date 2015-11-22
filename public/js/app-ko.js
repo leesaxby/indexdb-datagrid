@@ -6,24 +6,47 @@ app.ViewModel = function() {
   self.status = ko.observable(null);
   self.status.subscribe(function( val ) {
     if( val ) {
-      $('#msgModal').modal('show');  
+      $('#msgModal').modal('show');
     } else {
-      $('#msgModal').modal('hide'); 
+      $('#msgModal').modal('hide');
     }
-    
+
   })
-  
+
   self.bulkUploadTime = ko.observable(0);
   self.bulkUploadCount  = ko.observable(0);
   self.indexTime = ko.observable(0);
   self.queryTime = ko.observable(0);
-  self.queryCount  = ko.observable(0)
+  self.queryCount  = ko.observable(0);
 
   self.maxTblRows = 30;
   self.indexMin = 0;
   self.indexMax = 0;
   self.records = ko.observableArray([]);
-  
+
+  self.nameSearch = ko.observable();
+  self.nameSearch.subscribe(function( term ) {
+    self.search( term, { name: { $eq: term } } );
+  });
+
+  self.search = function( term, searchSelector ) {
+
+    if ( term.length > 2 ) {
+      app.db.find({
+        selector: searchSelector
+      }).then(function( result ) {
+        if ( result.docs.length ) {
+          self.records( result.docs );
+        }
+      }).catch(function(err) {
+        console.log(err)
+      });
+    } else if ( !term ) {
+      self.getDocs();
+    }
+
+  };
+
   self.getDocs = function( min, max ) {
     min = min || 0;
     max = max || self.maxTblRows;
@@ -112,20 +135,21 @@ app.ViewModel = function() {
             data2 = $.ajax( "olddata/data2.json" );
         self.status('Getting JSON...')
         $.when( data1, data2 ).then( function( resp1, resp2 ) {
-            
+
             var allDocs = resp1[0].concat(resp2[0]),
                 startTime = +new Date();
+
             self.status('Adding Records...')
             app.db.bulkDocs( allDocs ).then(function( response ) {
               var endTime = +new Date();
               self.bulkUploadTime( (endTime - startTime) / 1000 );
               self.bulkUploadCount( response.length )
-              
+
               var indexStartTime = +new Date();
               self.status('Creating Secondary Index...')
               app.db.createIndex({
                 index: {
-                  fields: ['index']
+                  fields: ['index', 'name']
                 }
               }).then(function (result) {
                 var endTime = +new Date();
@@ -140,8 +164,8 @@ app.ViewModel = function() {
             }).catch(function(err){
               console.log(err)
             });
-            
-          
+
+
         }).fail( function( xhr, err, status ) {
           console.log(err + ': ' + status)
         });

@@ -6,7 +6,7 @@
     <title>index</title>
     </head>
     <body>
-      
+
       <div class="container-fluid">
         <div id="db-btn-container">
           <button class="btn btn-primary" data-bind="click: addAllDocs">BULK ADD</button>
@@ -14,7 +14,7 @@
           <button class="btn btn-primary" data-bind="click: deleteDb">DELETE DB</button>
           <span>* = editable</span>
         </div>
-      
+
         <div id="stats-container">
           <table>
             <thead>
@@ -34,11 +34,9 @@
               </tr>
             </tbody>
           </table>
-        </div>     
+        </div>
       </div>
-      
 
-      
       <div data-bind="visible: records().length" id="grid-container" class="container-fluid">
         <table>
           <thead>
@@ -46,7 +44,7 @@
               <td>        <button class="page-btn" data-bind="click: previousRecs"><<</button></td>
               <td>id</td>
               <td>index</td>
-              <td>name*</td>
+              <td><input type="text" data-bind="textInput: nameSearch" placeholder="name">*</td>
               <td>age*</td>
               <td>active*</td>
               <td></td>
@@ -67,7 +65,7 @@
           </tbody>
         </table>
       </div>
-      
+
       <div id="msgModal" class="modal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
     		<div class="modal-dialog modal-m">
       		<div class="modal-content">
