@@ -19,9 +19,7 @@ app.ViewModel = function() {
   self.queryTime = ko.observable(0);
   self.queryCount  = ko.observable(0);
 
-  self.maxTblRows = 30;
-  self.indexMin = 0;
-  self.indexMax = 0;
+  self.getOptions = { include_docs: true, limit: 5, descending : false };
   self.records = ko.observableArray([]);
 
   self.nameSearch = ko.observable();
@@ -47,35 +45,54 @@ app.ViewModel = function() {
 
   };
 
-  self.getDocs = function( min, max ) {
-    min = min || 0;
-    max = max || self.maxTblRows;
-
+  self.getDocs = function( descending ) {
+    var descending = descending === true ? true : false;
     var startTime = +new Date();
 
-    app.db.find({
-      selector: {
-        index: { $gt: min, $lt: max }
-      }
-    }).then(function (result) {
-      var endTime = +new Date(),
-          docs = result.docs,
-          docsLen = docs.length;
+    self.getOptions.descending = descending;
 
-      self.queryTime( (endTime - startTime) / 1000 );
-      self.queryCount( docsLen );
+    app.db.allDocs(self.getOptions, function (err, response) {
 
-      self.indexMin = docs[0].index;
-      self.indexMax = docs[docsLen - 1].index;
-      self.records(docs);
-      self.status(null);
-    }).catch(function (err) {
-      self.status('Problem Getting Records...')
-      setTimeout(function() {
-        self.status(null)
-      }, 3000)
-      console.log(err)
-    });
+        if (response && response.rows.length > 0) {
+          self.getOptions.skip = 1;
+
+          if ( !descending ) {
+              self.getOptions.startkey = response.rows[response.rows.length - 1].id;
+              self.end = response.rows[0].id
+              self.getOptions.descending = false;
+          } else {
+            self.end = response.rows[response.rows.length - 1].id;
+            self.getOptions.startkey = self.end;
+            self.getOptions.descending = true;
+          }
+
+          var endTime = +new Date();
+          self.queryTime( (endTime - startTime) / 1000 );
+          self.queryCount( response.rows.length );
+
+          var docs = [];
+          for ( var i = 0, len = response.rows.length; i < len; i++ ) {
+            docs.push( response.rows[i].doc )
+          }
+
+          if ( descending ) {
+            docs.reverse();
+          }
+          self.records(docs);
+          self.status(null);
+
+        }
+
+        if ( err  ) {
+          self.status('Problem Getting Records...')
+          setTimeout(function() {
+            self.status(null)
+          }, 3000)
+          console.log(err)
+        }
+
+      });
+
   }
 
   self.syncDoc = function( doc ) {
@@ -113,11 +130,11 @@ app.ViewModel = function() {
   };
 
   self.previousRecs = function() {
-    self.getDocs( self.indexMin - self.maxTblRows, self.indexMin );
+    self.getDocs( true );
   };
 
   self.nextRecs = function() {
-    self.getDocs( self.indexMax, self.indexMax + self.maxTblRows );
+    self.getDocs( false );
   };
 
   self.countDocs = function() {

@@ -1,45 +1,91 @@
 <!doctype html>
 <html>
     <head>
-        <title>index</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/app.css">
+    <title>index</title>
     </head>
-    <script src="lib/pouchdb-5.1.0.min.js"></script>
-    <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
-    <script src="lib/react.js"></script>
-    <script src="lib/react-dom.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
-    <script type="text/javascript" src="js/db.js"></script>
-    <script type="text/javascript" src="js/app-react.js"></script>
     <body>
-      <!--button id="bulk-add">Bulk add</button-->
-      <!--button id="get-doc">get doc</button-->
-      <!--button id="delete-db">delete db</button-->
-      <!--button id="create-db">create db</button-->
-      <!--button id="count">count</button-->
 
-      <table id="my-table">
-        <tbody id="my-table-body">
+      <div class="container-fluid">
+        <div id="db-btn-container">
+          <button class="btn btn-primary" data-bind="click: addAllDocs">BULK ADD</button>
+          <button class="btn btn-primary" data-bind="click: countDocs">COUNT</button>
+          <button class="btn btn-primary" data-bind="click: deleteDb">DELETE DB</button>
+          <span>* = editable</span>
+        </div>
 
-        </tbody>
-      </table>
-      <script type="text/babel">
-
-        var HelloWorld = React.createClass({
-          render: function() {
-            console.log(this.props.myArr)
-            return (
+        <div id="stats-container">
+          <table>
+            <thead>
+              <th>BULK ADD</th>
+              <th>QUERY</th>
+              <th>INDEX</th>
+            </thead>
+            <tbody>
               <tr>
-                <td>/*{this.props.myArr}*/</td>
+                <td data-bind="text: 'time: ' + bulkUploadTime()"></td>
+                <td data-bind="text: 'time: ' + queryTime()"></td>
+                <td data-bind="text: 'time: ' + indexTime()"></td>
               </tr>
-            );
-          }
-        });
+              <tr>
+                <td data-bind="text: 'recs: ' + bulkUploadCount()"></td>
+                <td data-bind="text: 'recs: ' + queryCount()"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div data-bind="visible: records().length" id="grid-container" class="container-fluid">
+        <table>
+          <thead>
+            <tr>
+              <td>        <button class="page-btn" data-bind="click: previousRecs"><<</button></td>
+              <td>id</td>
+              <td>index</td>
+              <td><input type="text" data-bind="textInput: nameSearch" placeholder="name">*</td>
+              <td>age*</td>
+              <td>active*</td>
+              <td></td>
+              <td>        <button class="page-btn" data-bind="click: nextRecs">>></button></td>
+            </tr>
+          </thead>
+          <tbody data-bind="foreach: records">
+            <tr>
+              <td></td>
+              <td> <span data-bind="text: $data._id"></span> </td>
+              <td> <span data-bind="text: $data.index"></span> </td>
+              <td> <input data-bind="value: $data.name"> </td>
+              <td> <input data-bind="value: $data.age"> </td>
+              <td> <input data-bind="value: $data.isActive"> </td>
+              <td> <a data-bind="click: $root.updateDoc">UPDATE</a> </td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="msgModal" class="modal" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-hidden="true" style="padding-top:15%; overflow-y:visible;">
+    		<div class="modal-dialog modal-m">
+      		<div class="modal-content">
+      			<div class="modal-header">
+      			  <h3 data-bind="text: status" style="margin:0;"></h3>
+      			</div>
+      			<div class="modal-body">
+      				<div class="progress progress-striped active" style="margin-bottom:0;"><div class="progress-bar" style="width: 100%"></div></div>
+      			</div>
+      		</div>
+    		</div>
+  		</div>
 
 
-
-        setInterval(function() {
-          ReactDOM.render( <HelloWorld myArr={createFragment({test: 'tester'})}/>, document.getElementById('my-table-body') );
-        }, 500);
-      </script>
+      <script src="lib/pouchdb-5.1.0.min.js"></script>
+      <script src="lib/pouchdb.find.min.js"></script>
+      <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="lib/knockout.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+      <script type="text/javascript" src="js/app.js"></script>
     </body>
 </html>
