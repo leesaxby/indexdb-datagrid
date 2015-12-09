@@ -19,15 +19,18 @@
               <th>BULK ADD</th>
               <th>QUERY</th>
               <th>INDEX</th>
+              <th>TOTALS ROWS</th>
             </thead>
             <tbody>
               <tr>
                 <td data-bind="text: 'time: ' + bulkUploadTime()"></td>
                 <td data-bind="text: 'time: ' + queryTime()"></td>
                 <td data-bind="text: 'time: ' + indexTime()"></td>
+                <td data-bind="text: 'time: ' + totalRows()"></td>
               </tr>
               <tr>
                 <td data-bind="text: 'recs: ' + bulkUploadCount()"></td>
+                <td data-bind="text: 'recs: ' + queryCount()"></td>
                 <td data-bind="text: 'recs: ' + queryCount()"></td>
               </tr>
             </tbody>

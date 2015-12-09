@@ -8,6 +8,7 @@ app.ViewModel = function() {
   self.indexTime = ko.observable(0);
   self.queryTime = ko.observable(0);
   self.queryCount  = ko.observable(0);
+  self.totalRows  = ko.observable(0);
   self.records = ko.observableArray([]);
   self.getOptions = { include_docs: true, limit: 5, descending: false };
 
@@ -37,6 +38,7 @@ app.ViewModel = function() {
     self.status('Getting Records...');
     app.db.allDocs({ limit: 0 }).then(function(data) {
       if ( data.total_rows > 10000 ) {
+        self.totalRows(data.total_rows)
         self.getDocs();
       } else {
         self.addAllDocs()
