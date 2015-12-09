@@ -3,9 +3,17 @@ var app = app || {}
 app.ViewModel = function() {
   var self = this;
 
+  self.bulkUploadTime = ko.observable(0);
+  self.bulkUploadCount  = ko.observable(0);
+  self.indexTime = ko.observable(0);
+  self.queryTime = ko.observable(0);
+  self.queryCount  = ko.observable(0);
+  self.records = ko.observableArray([]);
+  self.getOptions = { include_docs: true, limit: 5, descending: false };
+
   self.status = ko.observable(null);
   self.status.subscribe(function( val ) {
-    if( val ) {
+    if ( val ) {
       $('#msgModal').modal('show');
     } else {
       $('#msgModal').modal('hide');
@@ -13,19 +21,28 @@ app.ViewModel = function() {
 
   })
 
-  self.bulkUploadTime = ko.observable(0);
-  self.bulkUploadCount  = ko.observable(0);
-  self.indexTime = ko.observable(0);
-  self.queryTime = ko.observable(0);
-  self.queryCount  = ko.observable(0);
-
-  self.getOptions = { include_docs: true, limit: 5, descending : false };
-  self.records = ko.observableArray([]);
-
   self.nameSearch = ko.observable();
   self.nameSearch.subscribe(function( term ) {
     self.search( term, { name: { $eq: term } } );
   });
+
+  self.errorDialog = function( msg ) {
+    self.status(msg)
+    setTimeout(function() {
+      self.status(null)
+    }, 3000)
+  }
+
+  self.initDocs = function() {
+    self.status('Getting Records...');
+    app.db.allDocs({ limit: 0 }).then(function(data) {
+      if ( data.total_rows > 10000 ) {
+        self.getDocs();
+      } else {
+        self.addAllDocs()
+      }
+    })
+  };
 
   self.search = function( term, searchSelector ) {
 
@@ -46,12 +63,12 @@ app.ViewModel = function() {
   };
 
   self.getDocs = function( descending ) {
-    var descending = descending === true ? true : false;
-    var startTime = +new Date();
+    var descending = descending === true ? true : false,
+        startTime = +new Date();
 
     self.getOptions.descending = descending;
 
-    app.db.allDocs(self.getOptions, function (err, response) {
+    app.db.allDocs(self.getOptions, function( err, response ) {
 
         if (response && response.rows.length > 0) {
           self.getOptions.skip = 1;
@@ -84,10 +101,7 @@ app.ViewModel = function() {
         }
 
         if ( err  ) {
-          self.status('Problem Getting Records...')
-          setTimeout(function() {
-            self.status(null)
-          }, 3000)
+          self.errorDialog('Problem Getting Records...')
           console.log(err)
         }
 
@@ -116,17 +130,12 @@ app.ViewModel = function() {
   };
 
   self.replaceDoc = function( oldDocId, newDoc ) {
-    for ( var i=0, len = self.records().length - 1; i < len; i++ ) {
+    for ( var i = 0, len = self.records().length - 1; i < len; i++ ) {
       if ( self.records()[i]._id === oldDocId ) {
         self.records.replace( self.records()[i], newDoc );
         break;
       }
     }
-  };
-
-  self.initDocs = function() {
-    self.status('Getting Records...');
-    self.getDocs();
   };
 
   self.previousRecs = function() {
@@ -137,75 +146,68 @@ app.ViewModel = function() {
     self.getDocs( false );
   };
 
-  self.countDocs = function() {
-    app.db.allDocs().then(function(response){
-      console.log(response.rows.length)
-    }).catch(function(err){
-      console.log(err)
-    })
-  };
-
   self.addAllDocs = function() {
-    app.db.allDocs().then(function(response){
-      if ( response.rows.length < 10000 ) {
-        var data1 = $.ajax( "olddata/data1.json" ),
-            data2 = $.ajax( "olddata/data2.json" );
-        self.status('Getting JSON...')
-        $.when( data1, data2 ).then( function( resp1, resp2 ) {
 
-            var allDocs = resp1[0].concat(resp2[0]),
-                startTime = +new Date();
+    var data1 = $.ajax( "data/data1.json" ),
+        data2 = $.ajax( "data/data2.json" );
 
-            self.status('Adding Records...')
-            app.db.bulkDocs( allDocs ).then(function( response ) {
-              var endTime = +new Date();
-              self.bulkUploadTime( (endTime - startTime) / 1000 );
-              self.bulkUploadCount( response.length )
+    self.status('Getting JSON...')
+    $.when( data1, data2 ).then( function( resp1, resp2 ) {
 
-              var indexStartTime = +new Date();
-              self.status('Creating Secondary Index...')
-              app.db.createIndex({
-                index: {
-                  fields: ['index', 'name']
-                }
-              }).then(function (result) {
-                var endTime = +new Date();
-                self.indexTime( (endTime - indexStartTime) / 1000 );
-                self.status(null);
-                self.initDocs();
-              }).catch(function (err) {
-                console.log(err)
-                // ouch, an error
-              });
+      var allDocs = resp1[0].concat(resp2[0]),
+          startTime = +new Date();
 
-            }).catch(function(err){
-              console.log(err)
-            });
+      self.status('Adding Records...')
+      app.db.bulkDocs( allDocs ).then(function( response ) {
 
+        var endTime = +new Date();
+        self.bulkUploadTime( (endTime - startTime) / 1000 );
+        self.bulkUploadCount( response.length )
 
-        }).fail( function( xhr, err, status ) {
-          console.log(err + ': ' + status)
+        var indexStartTime = +new Date();
+        self.status('Creating Secondary Index...')
+        app.db.createIndex({
+          index: {
+            fields: [ 'index', 'name' ]
+          }
+        }).then(function(result) {
+          var endTime = +new Date();
+          self.indexTime( (endTime - indexStartTime) / 1000 );
+          self.status(null);
+          self.initDocs();
+        }).catch(function(err) {
+          self.errorDialog('Problem Creating Index...')
+          console.log(err)
         });
-      } else {
-        console.log('already over 100000 docs')
-      }
-    }).catch(function(err){
-      console.log(err)
-    })
+
+      }).catch(function(err) {
+        self.errorDialog('Problem Adding Records...')
+        console.log(err)
+      });
+
+    }).fail( function( xhr, err, status ) {
+      self.errorDialog('Problem Getting JSON...')
+      console.log(err + ': ' + status)
+    });
+
   };
 
   self.deleteDb = function() {
     self.status('Deleting Database...')
     app.db.destroy().then(function() {
-      self.status(null);
+      self.status('Database Deleted...')
+      setTimeout(function() {
+        self.status(null)
+      }, 3000)
     }).catch(function(err) {
+      self.errorDialog('Problem Deleting Database...')
       console.log(err)
     })
   }
 
 };
 
-app.db = new PouchDB('my-db');
+app.db = new PouchDB('my-db-new');
 
 app.viewModel = new app.ViewModel();
 
