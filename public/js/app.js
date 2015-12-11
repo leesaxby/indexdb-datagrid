@@ -3,18 +3,9 @@ var app = app || {}
 app.ViewModel = function() {
   var self = this;
 
-  self.bulkUploadTime = ko.observable(0);
-  self.bulkUploadCount  = ko.observable(0);
-  self.indexTime = ko.observable(0);
-  self.queryTime = ko.observable(0);
-  self.queryCount  = ko.observable(0);
-  self.totalRows  = ko.observable(0);
-  self.records = ko.observableArray([]);
-  self.getOptions = { include_docs: true, limit: 5, descending: false };
-
   self.status = ko.observable(null);
   self.status.subscribe(function( val ) {
-    if ( val ) {
+    if( val ) {
       $('#msgModal').modal('show');
     } else {
       $('#msgModal').modal('hide');
@@ -22,29 +13,19 @@ app.ViewModel = function() {
 
   })
 
+  self.bulkUploadTime = ko.observable(0);
+  self.bulkUploadCount  = ko.observable(0);
+  self.indexTime = ko.observable(0);
+  self.queryTime = ko.observable(0);
+  self.queryCount  = ko.observable(0);
+
+  self.getOptions = { include_docs: true, limit: 60, descending : false };
+  self.records = ko.observableArray([]);
+
   self.nameSearch = ko.observable();
   self.nameSearch.subscribe(function( term ) {
     self.search( term, { name: { $eq: term } } );
   });
-
-  self.errorDialog = function( msg ) {
-    self.status(msg)
-    setTimeout(function() {
-      self.status(null)
-    }, 3000)
-  }
-
-  self.initDocs = function() {
-    self.status('Getting Records...');
-    app.db.allDocs({ limit: 0 }).then(function(data) {
-      if ( data.total_rows > 10000 ) {
-        self.totalRows(data.total_rows)
-        self.getDocs();
-      } else {
-        self.addAllDocs()
-      }
-    })
-  };
 
   self.search = function( term, searchSelector ) {
 
@@ -64,13 +45,13 @@ app.ViewModel = function() {
 
   };
 
-  self.getDocs = function( descending ) {
-    var descending = descending === true ? true : false,
-        startTime = +new Date();
+  self.getDocs = function( descending, scroll ) {
+    var descending = descending === true ? true : false;
+    var startTime = +new Date();
 
     self.getOptions.descending = descending;
 
-    app.db.allDocs(self.getOptions, function( err, response ) {
+    app.db.allDocs(self.getOptions, function (err, response) {
 
         if (response && response.rows.length > 0) {
           self.getOptions.skip = 1;
@@ -91,19 +72,30 @@ app.ViewModel = function() {
 
           var docs = [];
           for ( var i = 0, len = response.rows.length; i < len; i++ ) {
-            docs.push( response.rows[i].doc )
+            //docs.push( response.rows[i].doc )
+
+            self.records.push( response.rows[i].doc )
           }
 
           if ( descending ) {
-            docs.reverse();
+            //docs.reverse();
           }
-          self.records(docs);
+          //self.records(docs);
+          if ( !scroll ) {
+            $('#grid-container').scrollTop(0);
+          }
           self.status(null);
+          clearTimeout( app.scrollDelay );
+          app.scrollDelay = null;
+          $('#grid-container').scrollTop( app.rowPos )
 
         }
 
         if ( err  ) {
-          self.errorDialog('Problem Getting Records...')
+          self.status('Problem Getting Records...')
+          setTimeout(function() {
+            self.status(null)
+          }, 3000)
           console.log(err)
         }
 
@@ -132,12 +124,18 @@ app.ViewModel = function() {
   };
 
   self.replaceDoc = function( oldDocId, newDoc ) {
-    for ( var i = 0, len = self.records().length - 1; i < len; i++ ) {
+    for ( var i=0, len = self.records().length - 1; i < len; i++ ) {
       if ( self.records()[i]._id === oldDocId ) {
         self.records.replace( self.records()[i], newDoc );
         break;
       }
     }
+  };
+
+  self.initDocs = function() {
+    self.status('Getting Records...');
+    self.getDocs();
+    $('#grid-container').scrollTop(0)
   };
 
   self.previousRecs = function() {
@@ -148,68 +146,92 @@ app.ViewModel = function() {
     self.getDocs( false );
   };
 
+  self.countDocs = function() {
+    app.db.allDocs().then(function(response){
+      console.log(response.rows.length)
+    }).catch(function(err){
+      console.log(err)
+    })
+  };
+
   self.addAllDocs = function() {
+    app.db.allDocs().then(function(response){
+      if ( response.rows.length < 10000 ) {
+        var data1 = $.ajax( "data/data1.json" ),
+            data2 = $.ajax( "data/data2.json" );
+        self.status('Getting JSON...')
+        $.when( data1, data2 ).then( function( resp1, resp2 ) {
 
-    var data1 = $.ajax( "data/data1.json" ),
-        data2 = $.ajax( "data/data2.json" );
+            var allDocs = resp1[0].concat(resp2[0]),
+                startTime = +new Date();
 
-    self.status('Getting JSON...')
-    $.when( data1, data2 ).then( function( resp1, resp2 ) {
+            self.status('Adding Records...')
+            app.db.bulkDocs( allDocs ).then(function( response ) {
+              var endTime = +new Date();
+              self.bulkUploadTime( (endTime - startTime) / 1000 );
+              self.bulkUploadCount( response.length )
 
-      var allDocs = resp1[0].concat(resp2[0]),
-          startTime = +new Date();
+              var indexStartTime = +new Date();
+              self.status('Creating Secondary Index...')
+              app.db.createIndex({
+                index: {
+                  fields: ['index', 'name']
+                }
+              }).then(function (result) {
+                var endTime = +new Date();
+                self.indexTime( (endTime - indexStartTime) / 1000 );
+                self.status(null);
+                self.initDocs();
+              }).catch(function (err) {
+                console.log(err)
+                // ouch, an error
+              });
 
-      self.status('Adding Records...')
-      app.db.bulkDocs( allDocs ).then(function( response ) {
+            }).catch(function(err){
+              console.log(err)
+            });
 
-        var endTime = +new Date();
-        self.bulkUploadTime( (endTime - startTime) / 1000 );
-        self.bulkUploadCount( response.length )
 
-        var indexStartTime = +new Date();
-        self.status('Creating Secondary Index...')
-        app.db.createIndex({
-          index: {
-            fields: [ 'index', 'name' ]
-          }
-        }).then(function(result) {
-          var endTime = +new Date();
-          self.indexTime( (endTime - indexStartTime) / 1000 );
-          self.status(null);
-          self.initDocs();
-        }).catch(function(err) {
-          self.errorDialog('Problem Creating Index...')
-          console.log(err)
+        }).fail( function( xhr, err, status ) {
+          console.log(err + ': ' + status)
         });
-
-      }).catch(function(err) {
-        self.errorDialog('Problem Adding Records...')
-        console.log(err)
-      });
-
-    }).fail( function( xhr, err, status ) {
-      self.errorDialog('Problem Getting JSON...')
-      console.log(err + ': ' + status)
-    });
-
+      } else {
+        console.log('already over 100000 docs')
+      }
+    }).catch(function(err){
+      console.log(err)
+    })
   };
 
   self.deleteDb = function() {
     self.status('Deleting Database...')
     app.db.destroy().then(function() {
-      self.status('Database Deleted...')
-      setTimeout(function() {
-        self.status(null)
-      }, 3000)
+      self.status(null);
     }).catch(function(err) {
-      self.errorDialog('Problem Deleting Database...')
       console.log(err)
     })
   }
 
 };
 
-app.db = new PouchDB('my-db-new');
+app.currentScroll = $('#grid-container').scrollTop();
+$('#grid-container').on('scroll', function() {
+
+      var rows = $('#grid-container').find('table tr'),
+          $lastRow = $(rows[ rows.length - 1 ]),
+          lastRowPos = $lastRow.position();
+
+      app.rowPos = this.scrollHeight - $(this).height()
+
+      if ( ( lastRowPos.top - 78) === $('#grid-container').height() && app.scrollDelay === null) {
+        app.scrollDelay = setTimeout(function() {
+          app.viewModel.getDocs( false, true );
+        }, 200);
+      }
+
+})
+
+app.db = new PouchDB('my-db');
 
 app.viewModel = new app.ViewModel();
 
@@ -219,5 +241,5 @@ app.socket.on('updatedDoc', function( doc ) {
 })
 
 ko.applyBindings( app.viewModel );
-
+app.scrollDelay = null;
 app.viewModel.initDocs();

@@ -30,6 +30,8 @@
 
 #grid-container {
     margin-top: 100px;
+    height: 400px;
+    overflow-y: scroll;
 }
 
 #grid-container table {
