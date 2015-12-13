@@ -37,29 +37,26 @@
       </div>
 
       <div data-bind="visible: records().length" id="grid-container" class="container-fluid">
+              <div id="test" style="z-index: 999; position: fixed"></div>
         <table>
           <thead>
             <tr>
-              <td>        <button class="page-btn" data-bind="click: previousRecs"><<</button></td>
-              <td>id</td>
-              <td>index</td>
-              <td><input type="text" data-bind="textInput: nameSearch" placeholder="name">*</td>
-              <td>age*</td>
-              <td>active*</td>
-              <td></td>
-              <td>        <button class="page-btn" data-bind="click: nextRecs">>></button></td>
+              <th>id</th>
+              <th>index</th>
+              <th><input type="text" data-bind="textInput: nameSearch" placeholder="name">*</th>
+              <th>age*</th>
+              <th>active*</th>
+              <th></th>
             </tr>
           </thead>
           <tbody data-bind="foreach: records">
             <tr>
-              <td></td>
               <td> <span data-bind="text: $data._id"></span> </td>
               <td> <span data-bind="text: $data.index"></span> </td>
               <td> <input data-bind="value: $data.name"> </td>
               <td> <input data-bind="value: $data.age"> </td>
               <td> <input data-bind="value: $data.isActive"> </td>
               <td> <a data-bind="click: $root.updateDoc">UPDATE</a> </td>
-              <td></td>
             </tr>
           </tbody>
         </table>
@@ -82,6 +79,7 @@
       <script src="lib/pouchdb-5.1.0.min.js"></script>
       <script src="lib/pouchdb.find.min.js"></script>
       <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+      <script src="lib/jquery.fixedheader.js"></script>
       <script src="/socket.io/socket.io.js"></script>
       <script src="lib/knockout.js"></script>
       <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>

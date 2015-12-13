@@ -102,6 +102,8 @@ app.ViewModel = function() {
           }
           //self.records(docs);
           if ( !scroll ) {
+            var table = $('#grid-container').find('table');
+            $('#test').fixheader({target_tbl: $(table)})
             $('#grid-container').scrollTop(0);
           }
           self.status(null);

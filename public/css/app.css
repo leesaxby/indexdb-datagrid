@@ -19,16 +19,18 @@
     margin-left: 20px;
 }
 
-#stats-container table th {
+#stats-container th {
     padding-right: 30px;
 }
 
-#grid-container table tbody td,
-#grid-container table thead td {
+#grid-container tbody td,
+#grid-container thead th {;
     padding-right: 30px;
 }
 
 #grid-container {
+        position: relative;
+    display: block;
     margin-top: 100px;
     height: 400px;
     overflow-y: scroll;
@@ -43,7 +45,7 @@
     padding: 0px 5px 0px 5px;
 }
 
-#grid-container table thead td {
+#grid-container thead th {
     border: 0px;
     background: #3498db;
     color: #fff;
@@ -112,4 +114,10 @@
 
 button {
     outline: none;
+}
+
+
+#fixed-header-clone th {
+  text-align: left;
+  --padding: 0px 5px 0px 5px;
 }
