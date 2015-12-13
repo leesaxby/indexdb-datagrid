@@ -225,13 +225,9 @@ app.ViewModel = function() {
 app.currentScroll = $('#grid-container').scrollTop();
 $('#grid-container').on('scroll', function() {
 
-      var rows = $('#grid-container').find('table tr'),
-          $lastRow = $(rows[ rows.length - 1 ]),
-          lastRowPos = $lastRow.position();
-
       app.rowPos = this.scrollHeight - $(this).height()
 
-      if ( ( lastRowPos.top - 78) === $('#grid-container').height() && app.scrollDelay === null) {
+      if ( app.rowPos === $(this).scrollTop() && app.scrollDelay === null) {
         app.scrollDelay = setTimeout(function() {
           app.viewModel.getDocs( false, true );
         }, 200);
